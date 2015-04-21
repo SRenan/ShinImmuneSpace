@@ -1,15 +1,13 @@
-# This is the server logic for a Shiny web application.
-# You can find out more about building applications with Shiny here:
-#
-# http://shiny.rstudio.com
-#
 
 #Variables and functions
 library(shiny)
+library(Rlabkey)
 library(ImmuneSpaceR)
 library(gtools)
+
 con <- NULL
 labkey.url.base <- "www.immunespace.org"
+
 getStudies <- function(){
   sdys <- mixedsort(grep("^SDY", basename(lsFolders(getSession(labkey.url.base, "Studies"))), value = TRUE))
   return(sdys)
@@ -49,7 +47,8 @@ shinyServer(function(input, output, session) {
     input$gdButton
     isolate({
       if(input$gdButton > 0){
-        con$getDataset(input$display_dataset, original_view = input$gd_opts_CB)
+        dataset_dt <<- con$getDataset(input$display_dataset, original_view = input$gd_opts_CB)
+        return(dataset_dt)
       }
     })
   })
@@ -58,6 +57,17 @@ shinyServer(function(input, output, session) {
     #updateTabsetPanel should always be within an observer
     updateTabsetPanel(session, inputId = "panels", selected = "Table")
   })
+  
+  output$download_dataset <- downloadHandler(
+    filename = function(){
+      paste0(input$study_accession, "_", input$display_dataset, ".tsv")
+    },
+    content = function(file){
+      write.table(dataset_dt, file, sep = "\t", quote = FALSE, row.names = FALSE)
+    },
+    contentType = "text/csv"
+  )
+    
   
   ## PLOT
   output$qp <- renderPlot({

@@ -26,7 +26,8 @@ shinyUI(fluidPage(
       tabsetPanel(id="panels",
         tabPanel('Table',
                  hr(),
-                 dataTableOutput("DT")
+                 dataTableOutput("DT"),
+                 downloadButton("download_dataset", "Download")
                  ),
         tabPanel('Plot',
                  hr(),
