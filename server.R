@@ -6,30 +6,43 @@ library(ImmuneSpaceR)
 library(gtools)
 
 con <- NULL
-labkey.url.base <- "www.immunespace.org"
+labkey.url.base <- NULL
 
 getStudies <- function(){
   sdys <- mixedsort(grep("^SDY", basename(lsFolders(getSession(labkey.url.base, "Studies"))), value = TRUE))
+  sdys <- sdys[sdys != "SDY_template"]
   return(sdys)
 }
 
 #Server
 shinyServer(function(input, output, session) {
   
-  ## CONNECTION
-  updateSelectInput(session, "study_accession", "Study",
-                    choices = getStudies())
+  # This will be used to handle login
+  ## LOGIN
+  #output$server_title <- renderText({
+  #  input$netrcButton
+  #  isolate({
+  #    if(input$netrcButton > 0){
+  #      netrc_file <- tempfile("ImmuneSpaceR_tmp_netrc")
+  #      netrc_string <- paste("machine www.immunespace.org login", input$login, "password", input$pwd)
+  #      write(x = netrc_string, file = netrc_file)
+  #      labkey.netrc.file <- netrc_file
+  #    }
+  #  })
+  #})
   
-  output$study_title <- renderText({
-    input$ccButton
-    isolate({
-      if(input$ccButton >0){ #even with isolate, it would get executed once
-        con <<- CreateConnection(input$study_accession)
-        updateSelectInput(session, "display_dataset", "Dataset",
-                          choices = con$available_datasets$Name)
-        input$study_accession
-      }
-    })
+  ## SERVER
+  observeEvent(input$connectButton, {
+        labkey.url.base <<- input$server
+        updateSelectInput(session, "study_accession", "Study", 
+                          choices = getStudies())
+  })
+  
+  ## CONNECTION
+  observeEvent(input$ccButton, {
+    con <<- CreateConnection(input$study_accession)
+    updateSelectInput(session, "display_dataset", "Dataset",
+                      choices = con$available_datasets$Name)
   })
   
   ## DATASET
@@ -58,12 +71,13 @@ shinyServer(function(input, output, session) {
     updateTabsetPanel(session, inputId = "panels", selected = "Table")
   })
   
+  # File download known to not create files when used from Rstudio's viewer
   output$download_dataset <- downloadHandler(
     filename = function(){
       paste0(input$study_accession, "_", input$display_dataset, ".tsv")
     },
     content = function(file){
-      write.table(dataset_dt, file, sep = "\t", quote = FALSE, row.names = FALSE)
+      write.table(dataset_dt, file = file, sep = "\t", quote = FALSE, row.names = FALSE)
     },
     contentType = "text/csv"
   )

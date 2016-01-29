@@ -2,10 +2,24 @@ library(shiny)
 
 shinyUI(fluidPage(
 
-  h1(textOutput("study_title")),
+  h1(textOutput("server_name")),
+  #titlePanel(
+  #  fluidRow(
+  #    column(2, h2(textOutput("server_name"))),
+  #    column(2, h2(textOutput("study_title")))
+  #  )
+  #),
 
   sidebarLayout(
     sidebarPanel(
+      # This will handle login (to remove the need for netrc)
+      #textInput("login", label = "Login", value = ""),
+      #textInput("pwd", label = "Password", value = ""),
+      #actionButton(inputId = "netrcButton", "Login"),
+      #hr(),
+      selectInput("server", "Server", choices = paste0(c("test", "www"), ".immunespace.org")),
+      actionButton(inputId = "connectButton", "Connect"),
+      hr(),
       selectInput("study_accession", "Study", choices = ""),
       actionButton(inputId = "ccButton", "Create Connection"),
       hr(),
