@@ -1,4 +1,3 @@
-
 #Variables and functions
 library(shiny)
 library(Rlabkey)
@@ -32,10 +31,11 @@ shinyServer(function(input, output, session) {
   #})
   
   ## SERVER
-  observeEvent(input$connectButton, {
+  observeEvent(input$connectButton, { #Handle actionButtons
         labkey.url.base <<- input$server
         updateSelectInput(session, "study_accession", "Study", 
                           choices = getStudies())
+        updateSelectInput(session, "display_dataset", choices = "") #cleanup the dataset dropdown
   })
   
   ## CONNECTION
